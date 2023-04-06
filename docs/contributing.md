@@ -67,7 +67,7 @@ refer to the implementation of [milvus](https://github.com/zilliztech/GPTCache/b
 
 1. Implement the [VectorStore](https://github.com/zilliztech/GPTCache/blob/main/gptcache/cache/vector_data/vector_store.py) interface
 2. Make sure the newly added third-party libraries are lazy imported and automatic installation
-3. Add the new store to the [get_ss_data_manager](https://github.com/zilliztech/GPTCache/blob/main/gptcache/cache/factory.py) method
+3. Add the new store to the [get_data_manager](https://github.com/zilliztech/GPTCache/blob/main/gptcache/cache/factory.py) method
 4. Add a usage example to [example](https://github.com/zilliztech/GPTCache/blob/main/examples) directory and add the corresponding content to [example.md](https://github.com/zilliztech/GPTCache/blob/main/examples/example.md) [README.md](https://github.com/zilliztech/GPTCache/blob/main/README.md)
 
 ## Add a vector index type

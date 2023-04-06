@@ -133,7 +133,7 @@ from gptcache.similarity_evaluation.simple import SearchDistanceEvaluation
 print("Cache loading.....")
 
 towhee = Towhee()
-data_manager = get_ss_data_manager("sqlite", "faiss", dimension=towhee.dimension())
+data_manager = get_data_manager("sqlite", "faiss", dimension=towhee.dimension())
 cache.init(
     embedding_func=towhee.to_embeddings,
     data_manager=data_manager,

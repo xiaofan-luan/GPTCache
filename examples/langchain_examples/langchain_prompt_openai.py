@@ -3,7 +3,7 @@ import os
 import openai
 import time
 from langchain.llms import OpenAI
-from langchain import PromptTemplate, LLMChain
+from langchain import PromptTemplate
 
 from gptcache.adapter.langchain_llms import LangChainLLMs
 from gptcache import Cache
