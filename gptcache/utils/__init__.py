@@ -42,6 +42,8 @@ __all__ = [
     "import_redis",
     "import_qdrant",
     "import_weaviate",
+    "import_anthropic",
+    "import_openai_client",
     ]
 
 import importlib.util
@@ -234,6 +236,10 @@ def import_openai():
     _check_library("openai", package="openai==0.28.1")
 
 
+def import_openai_client():
+    _check_library("openai", package="openai")
+
+
 def import_docarray():
     _check_library("docarray")
 
@@ -267,3 +273,7 @@ def import_starlette():
 
 def import_weaviate():
     _check_library("weaviate-client")
+
+
+def import_anthropic():
+    _check_library("anthropic")
