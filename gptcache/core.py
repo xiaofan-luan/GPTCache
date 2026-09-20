@@ -11,7 +11,7 @@ from gptcache.processor.pre import last_content
 from gptcache.report import Report
 from gptcache.similarity_evaluation import ExactMatchEvaluation
 from gptcache.similarity_evaluation import SimilarityEvaluation
-from gptcache.utils import import_openai
+from gptcache.utils import import_openai, import_anthropic
 from gptcache.utils.cache_func import cache_all
 from gptcache.utils.log import gptcache_log
 
@@ -127,5 +127,12 @@ class Cache:
         openai.api_key = os.getenv("OPENAI_API_KEY")
         openai.api_base = os.getenv("OPENAI_API_BASE")
         openai.api_version = os.getenv("OPENAI_API_VERSION")
+
+    @staticmethod
+    def set_anthropic_key():
+        import_anthropic()
+        import anthropic  # pylint: disable=C0415
+
+        anthropic.api_key = os.getenv("ANTHROPIC_API_KEY")
 
 cache = Cache()
