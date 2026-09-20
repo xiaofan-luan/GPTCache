@@ -12,7 +12,8 @@ __all__ = [
     "CohereRerankEvaluation",
     "SequenceMatchEvaluation",
     "TimeEvaluation",
-    "SbertCrossencoderEvaluation"
+    "SbertCrossencoderEvaluation",
+    "JevEvaluation"
 ]
 
 from gptcache.utils.lazy_import import LazyImport
@@ -43,6 +44,11 @@ time = LazyImport(
 sbert_crossencoder = LazyImport(
     "sbert_crossencoder", globals(), "gptcache.similarity_evaluation.sbert_crossencoder"
 )
+
+jev = LazyImport(
+    "jev", globals(), "gptcache.similarity_evaluation.jev"
+)
+
 
 def OnnxModelEvaluation(model="GPTCache/albert-duplicate-onnx"):
     return onnx.OnnxModelEvaluation(model)
@@ -77,3 +83,9 @@ def TimeEvaluation(evaluation: str, evaluation_config: Dict[str, Any], time_rang
 
 def SbertCrossencoderEvaluation(model: str = "cross-encoder/quora-distilroberta-base"):
     return sbert_crossencoder.SbertCrossencoderEvaluation(model)
+
+
+def JevEvaluation(api_key: str = None, model: str = "jev-latest", base_url: str = None, **kwargs):
+    if base_url is not None:
+        kwargs["base_url"] = base_url
+    return jev.JevEvaluation(api_key=api_key, model=model, **kwargs)
