@@ -34,3 +34,20 @@ def get_image_from_path(openai_resp):
 
 def get_audio_text_from_openai_answer(openai_resp):
     return openai_resp["text"]
+
+
+def get_message_from_anthropic_answer(anthropic_resp):
+    content = anthropic_resp.content
+    if isinstance(content, str):
+        return content
+    if content and isinstance(content[0], dict):
+        return content[0]["text"]
+    return content[0].text
+
+
+def get_stream_message_from_anthropic_answer(anthropic_data):
+    if anthropic_data.type == "content_block_delta":
+        return anthropic_data.delta.text
+    if isinstance(anthropic_data, dict):
+        return anthropic_data.get("delta", {}).get("text", "")
+    return ""
