@@ -1,0 +1,21 @@
+{
+  "records": 1536,
+  "threshold": 0.75,
+  "label_counts": {
+    "reject": 1027,
+    "reuse": 505,
+    "uncertain": 4
+  },
+  "hits": 384,
+  "hit_rate": 0.25,
+  "outcomes": {
+    "correct_refusal": 1022,
+    "correct_reuse": 378,
+    "uncertain_reuse": 1,
+    "missed_reuse": 127,
+    "wrong_reuse": 5,
+    "uncertain_refusal": 3
+  },
+  "reuse_precision": 0.9869451697127938,
+  "reuse_recall": 0.7485148514851485
+}

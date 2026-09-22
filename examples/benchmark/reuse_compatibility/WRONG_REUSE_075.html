@@ -1,0 +1,209 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GPTCache 0.75 阈值 · 误复用审计</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;1,600;1,800&family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>/* =================================================================
+   ZILLIZ EDITORIAL TECH LONGFORM · DESIGN TOKENS v1.0
+   =================================================================
+
+   Drop-in CSS for the Zilliz editorial design system.
+   Paste this into any new HTML project's <style> block.
+
+   Required: load Google Fonts in <head>:
+
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,600;9..144,800;9..144,900&family=Noto+Serif+SC:wght@400;500;700;900&family=Noto+Sans+SC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+   ================================================================= */
+
+:root {
+  /* ---- COLORS (11 tokens, fixed) ---- */
+  --ink:        #0F1F2E;   /* Primary text, strong borders, dark panels */
+  --ink-soft:   #2C3E50;   /* Body paragraphs */
+  --paper:      #FAF6EE;   /* Page background — WARM, never #FFFFFF */
+  --paper-warm: #F4ECDC;   /* Card backgrounds, icon-box fills */
+  --accent:     #E85A2B;   /* PRIMARY ACCENT — coral */
+  --accent-soft:#F4B860;   /* Warm gold — for dark backgrounds */
+  --teal:       #1E5F70;   /* Baseline / old solution */
+  --teal-light: #3E8B9C;
+  --red:        #B0322A;   /* Pain points, anti-patterns, errors */
+  --green:      #0F7D4B;   /* Recommended, success */
+  --muted:      #6B6356;   /* Captions, metadata */
+  --mist:       #E5DDD0;   /* Subtle dividers */
+  --rowAlt:     #F5F1E8;   /* Alternating table rows */
+
+  /* ---- FONTS ---- */
+  --font-display-cn: 'Noto Serif SC', serif;
+  --font-display-en: 'Fraunces', serif;
+  --font-body:       'Noto Sans SC', sans-serif;
+  --font-mono:       'JetBrains Mono', monospace;
+
+  /* ---- TYPE SCALE ---- */
+  --fs-cover:   60px;   /* Cover H1 */
+  --fs-h1:      36px;   /* Section H2 in body */
+  --fs-h3:      22px;   /* Subsection */
+  --fs-quote:   17px;   /* Callout, key insight, thesis */
+  --fs-body:    15px;   /* Body text */
+  --fs-card:    13.5px; /* Card body */
+  --fs-caption: 12px;
+  --fs-label:   11px;   /* Mono eyebrow */
+
+  /* ---- SPACING ---- */
+  --page-max:    940px;
+  --page-pad-x:  60px;
+  --page-pad-y:  80px 60px 100px;
+  --section-gap: 80px;
+  --card-pad:    26px 28px;
+
+  /* ---- BORDERS ---- */
+  --border-strong: 1.5px solid var(--ink);
+  --border-soft:   1px solid var(--mist);
+  --accent-bar:    3px solid var(--accent);
+}
+
+/* =================================================================
+   BODY BASELINE — required for every document
+   ================================================================= */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.75;
+  font-size: var(--fs-body);
+
+  /* The signature warm-paper texture — required */
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(15, 31, 46, 0.04) 1px, transparent 0
+  );
+  background-size: 24px 24px;
+}
+
+/* =================================================================
+   PAGE CONTAINER
+   ================================================================= */
+
+.page {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: var(--page-pad-y);
+  background: var(--paper);
+}
+
+/* =================================================================
+   TYPOGRAPHY DEFAULTS
+   ================================================================= */
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display-cn);
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+
+h1 { font-size: var(--fs-cover); font-weight: 900; line-height: 1.05; }
+h2 { font-size: var(--fs-h1); font-weight: 900; line-height: 1.25; }
+h3 { font-size: var(--fs-h3); font-weight: 700; line-height: 1.3; }
+
+p {
+  color: var(--ink-soft);
+  line-height: 1.85;
+  margin-bottom: 16px;
+}
+
+p strong, .section strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+p em, .section em {
+  color: var(--accent);
+  font-style: normal;
+  font-weight: 600;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid currentColor;
+}
+
+/* =================================================================
+   SECTION HEADER PATTERN — 3-piece is mandatory
+   ================================================================= */
+
+.section {
+  margin-bottom: var(--section-gap);
+  scroll-margin-top: 30px;
+}
+
+.section-num {
+  font-family: var(--font-display-en);
+  font-style: italic;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  margin-bottom: 10px;
+}
+
+.section h2 {
+  position: relative;
+  padding-bottom: 18px;
+  margin-bottom: 30px;
+}
+
+.section h2::after {
+  content: "";
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 60px;
+  height: 3px;
+  background: var(--accent);
+}
+
+/* =================================================================
+   EYEBROW LABEL — used at top of hero & sections
+   ================================================================= */
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 28px;
+}
+
+.eyebrow::before {
+  content: "";
+  width: 32px;
+  height: 1px;
+  background: var(--accent);
+}
+
+/* =================================================================
+   COMPONENT TEMPLATES — see references/components.md for full set
+   ================================================================= */
+
+/* See assets/template-base.html for a working starting template
+   that includes ALL components ready to fill in. */
+
+*{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--paper);font-family:'Noto Sans SC',sans-serif}.page{max-width:1100px;margin:auto;padding:56px 48px 80px}.hero{display:grid;grid-template-columns:1fr 110px;gap:40px;border-bottom:2px solid var(--ink);padding-bottom:32px}.eyebrow,.label{font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em;font-size:11px;color:var(--accent)}h1,h2,h3{font-family:'Noto Serif SC',serif}h1{font-size:58px;line-height:1.12;margin:24px 0 18px}h2{font-size:34px;margin:8px 0 30px}h2:after{content:'';display:block;width:60px;border-bottom:4px solid var(--accent);padding-top:14px}.hero p{max-width:720px;font-size:17px;line-height:1.8;color:var(--ink-soft)}.icon{width:80px;height:80px;border:1.5px solid var(--ink);background:var(--paper-warm);display:grid;place-items:center}.thesis{margin:28px 0;padding:22px 26px;background:var(--ink);color:var(--paper);line-height:1.8}.thesis strong{color:var(--accent-soft)}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:30px 0}.stat{border:1.5px solid var(--ink);padding:18px;background:var(--paper-warm)}.stat b{display:block;font-family:'Fraunces',serif;font-style:italic;font-size:38px}.stat span{font-size:12px;color:var(--muted)}.chapter{margin-top:54px}.filters{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 24px}.filters button{font-family:'Noto Sans SC';background:transparent;border:1.5px solid var(--ink);padding:9px 14px;cursor:pointer}.filters button.active{background:var(--ink);color:var(--paper)}.case{border:1.5px solid var(--ink);margin:0 0 18px;background:rgba(255,255,255,.15)}.case summary{cursor:pointer;padding:18px 22px;display:flex;gap:14px;align-items:flex-start}.num{font-family:'Fraunces';font-style:italic;font-size:27px;color:var(--accent)}.summary-main{flex:1}.tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}.tag{border:1px solid var(--teal);color:var(--teal);padding:3px 7px;font:10px 'JetBrains Mono'}.tag.bad{border-color:var(--red);color:var(--red)}.tag.muted{border-color:var(--muted);color:var(--muted)}.title{font-weight:700;line-height:1.55}.content{border-top:1px solid var(--mist);padding:22px}.verdict{border-left:4px solid var(--red);background:var(--paper-warm);padding:15px 18px;margin-bottom:18px}.verdict.quality{border-color:var(--teal)}.verdict h3{margin:0 0 7px;font-size:18px}.verdict p{margin:0;line-height:1.75}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.block{border-top:1.5px solid var(--ink);padding-top:10px}.block.answer{grid-column:1/-1;background:var(--paper-warm);padding:16px}.block pre{font:13px/1.65 'Noto Sans SC';white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0;max-height:340px;overflow:auto}.score-grid{margin-top:18px}.score{display:grid;grid-template-columns:140px 1fr 42px;gap:10px;align-items:center;margin:8px 0;font-size:12px}.track{height:8px;background:var(--mist);position:relative}.track:after{content:'';position:absolute;left:75%;top:-4px;height:16px;border-left:1px dashed var(--ink)}.fill{height:100%;background:var(--teal)}.source-reason{margin-top:16px;padding:13px;border:1px solid var(--mist);color:var(--muted);font-size:12px;line-height:1.7}.footer{border-top:2px solid var(--ink);margin-top:55px;padding-top:18px;color:var(--muted);font:11px 'JetBrains Mono'}
+@media(max-width:720px){.page{padding:30px 18px}.hero{grid-template-columns:1fr}.icon{display:none}h1{font-size:40px}.stats,.grid{grid-template-columns:1fr 1fr}.score{grid-template-columns:100px 1fr 36px}.block.answer{grid-column:1/-1}}</style></head>
+<body><main class="page"><header class="hero"><div><div class="eyebrow">GPTCACHE / FALSE REUSE AUDIT · 误复用审计</div><h1>阈值 0.75，<br>哪些不该命中？</h1><p>逐条查看平衡版 prompt 在 0.75 阈值下的全部误复用候选，并严格区分缓存兼容性错误与答案内容质量问题。</p></div><div class="icon"><svg width="52" height="52" viewBox="0 0 52 52" fill="none"><path d="M6 13h18v12H6z" fill="#F4B860" stroke="#0F1F2E" stroke-width="1.5"/><path d="M28 29h18v12H28z" fill="#B0322A" stroke="#0F1F2E" stroke-width="1.5"/><path d="M24 19h8v16h-5" stroke="#0F1F2E" stroke-width="1.5"/><path d="m23 31 4 4-4 4" stroke="#0F1F2E" stroke-width="1.5"/></svg></div></header>
+<div class="thesis"><strong>结论：</strong>模型标签给出 9 条误复用候选。按“不判断答案正确性”的严格口径复核后，5 条属于真正的任务、格式或上下文不兼容；4 条只是答案内容质量问题，不应记为 Cache 错误。</div>
+<section class="stats"><div class="stat"><b>384</b><span>阈值 0.75 的全部命中</span></div><div class="stat"><b>9</b><span>模型标注误复用候选</span></div><div class="stat"><b>5</b><span>确认兼容性误复用</span></div><div class="stat"><b>4</b><span>答案质量问题，移出统计</span></div></section>
+<section class="chapter"><div class="eyebrow">— Chapter 01 —</div><h2>九条候选，逐条解释</h2><div class="filters"><button data-filter="all" class="active">全部 9 条</button><button data-filter="confirmed">确认误复用 5 条</button><button data-filter="answer_quality_only">不计缓存错误 4 条</button></div><div id="cases"></div></section>
+<footer class="footer">评估范围：请求信息、输出契约、上下文和时效。事实、计算、代码和推理正确性不参与 Cache 兼容性判断。</footer></main>
+<script id="data" type="application/json">[{"query_index":48249,"candidate_index":34731,"query_id":"12116","candidate_id":"12102","split":"calibration","cosine":0.9584144949913025,"candidate_correct":true,"cache_has_group":true,"query":"What is the optimal strategy for the secretary problem when the objective is to select one of the top 20% candidates, rather than the absolute best?","cached_query":"How can the secretary problem be adapted to guarantee selection of one of the top 20% candidates, rather than necessarily the absolute best option?","answer":"The secretary problem, also known as the optimal stopping problem, traditionally involves selecting the best candidate from a sequentially presented list of candidates. The classic solution suggests that you should observe and reject the first \\( n/e \\) candidates (where \\( n \\) is the total number of candidates and \\( e \\) is the base of the natural logarithm, approximately 2.718) and then select the next candidate who is better than all previously observed candidates.\n\nTo adapt the secretary problem to guarantee the selection of one of the top 20% candidates rather than necessarily the absolute best, you can modify the strategy as follows:\n\n1. **Determine the Threshold**: First, calculate the number of candidates that represent the top 20%. If you have \\( n \\) candidates, the top 20% would be the best \\( 0.2n \\) candidates.\n\n2. **Initial Observation Phase**: Similar to the classic problem, you can start by observing a certain number of candidates without making a selection. However, instead of observing \\( n/e \\), you might want to observe a larger number to increase your chances of identifying candidates in the top 20%. A reasonable approach could be to observe the first \\( k \\) candidates, where \\( k \\) is set to ensure that you have a good sample of the top candidates. For example, you could set \\( k = 0.5n \\) (observing the first half of the candidates).\n\n3. **Selection Phase**: After the initial observation phase, you can then enter the selection phase. The goal here is to select a candidate who is better than the best candidate observed in the initial phase, but with a focus on ensuring that you are likely to select from the top 20%. \n\n4. **Modified Selection Criteria**: Instead of selecting the next candidate who is better than all previously observed candidates, you can modify your selection criteria to include a threshold based on the observed candidates. For example, you could select the first candidate who is better than the best candidate from the initial \\( k \\) candidates, but also ensure that you are willing to accept candidates who are within a certain range of quality (e.g., within the top 20% of the observed candidates).\n\n5. **Stopping Condition**: Continue this process until you either select a candidate or reach the end of the list. If you reach the end without selecting, you may choose to select the best candidate from the entire pool as a fallback.\n\nBy following this modified strategy, you increase the likelihood of selecting a candidate from the top 20% while still maintaining a systematic approach to the selection process. The key is to balance the initial observation phase with a flexible selection criterion that allows for a broader range of acceptable candidates.","answer_model":"gpt-4.1-nano","uid":"arena-calibration-12116-12102","arm":"arena","arm_title":"LmArena · GPT-4.1 nano","old":{"query_id":"12116","candidate_id":"12102","split":"calibration","score":0.52,"scores":{"task_identical":0.75,"context_matches":0.9,"format_ok":0.56,"is_fresh":0.52,"no_missing_ctx":0.78},"semantic_score":0.56,"error":false,"seconds":1.3457128750000003,"sample_sha256":"e9b443751cd1c4c123971520e79862fca4ed2390a7c68a00d93cafd3f5525a50"},"scope_verdict":"confirmed","category_zh":"交付目标不一致","reason_zh":"当前请求明确要求最优策略；缓存请求和答案只给出一种可行或合理的调整方案，没有交付当前请求要求的最优策略。这是任务交付范围差异，不依赖判断方案本身是否正确。","scores":{"task_identical":0.88,"context_matches":0.9,"format_ok":0.86,"is_fresh":0.96,"no_missing_ctx":0.93},"score":0.86,"query_summary_zh":"询问秘书问题中，以选中前20%候选人而非绝对最优为目标时的最优策略。","model_reason_zh":"当前请求明确要求“最优策略”，而缓存回答只是给出一种“合理调整方案”，并未声称或给出该问题的最优策略，因此属于任务不匹配。该差异属于请求任务要求的差异，不涉及对回答正确性的审查。"},{"query_index":34918,"candidate_index":9144,"query_id":"1709","candidate_id":"1720","split":"test","cosine":0.9608066082000732,"candidate_correct":true,"cache_has_group":true,"query":"\u003e\n        Rephrase the question in a more concise manner: in a world where everyone is borrowing and stealing ideas, what makes piracy uniquely problematic?","cached_query":"\u003e\n        Rephrase the question in a more concise manner: in a society where people constantly borrow and steal ideas from one another, what makes piracy uniquely problematic?","answer":"In a society that frequently borrows and steals ideas, what makes piracy particularly problematic?","answer_model":"gpt-4.1-nano","uid":"arena-test-1709-1720","arm":"arena","arm_title":"LmArena · GPT-4.1 nano","old":{"query_id":"1709","candidate_id":"1720","split":"test","score":0.51,"scores":{"task_identical":0.51,"context_matches":0.87,"format_ok":0.83,"is_fresh":0.54,"no_missing_ctx":0.96},"semantic_score":0.51,"error":false,"seconds":1.0237473330000029,"sample_sha256":"e9b443751cd1c4c123971520e79862fca4ed2390a7c68a00d93cafd3f5525a50"},"scope_verdict":"answer_quality_only","category_zh":"答案质量，不计缓存错误","reason_zh":"两个请求都是对同一句含义进行简洁改写，任务、实体、格式和时效均兼容。缓存答案是否准确保留 everyone 和 uniquely 的语义强度属于改写质量，不应作为 Cache 复用判据。","scores":{"task_identical":0.92,"context_matches":0.94,"format_ok":0.9,"is_fresh":0.97,"no_missing_ctx":0.92},"score":0.9,"query_summary_zh":"要求以更简洁的方式改写关于“人人都在借鉴和窃取想法时，盗版为何独特有问题”的提问。","model_reason_zh":"当前请求要求改写“everyone...uniquely problematic”这一关键表述，但缓存答案将“everyone”弱化为“frequently”，并将“uniquely”改为“particularly”，改变了原问的限定语义。由于这是改写任务，保留这些关键约束属于必要要求，因此缓存答案不能原样满足当前请求。"},{"query_index":32633,"candidate_index":17689,"query_id":"66593","candidate_id":"66578","split":"test","cosine":0.9697086215019226,"candidate_correct":true,"cache_has_group":true,"query":"\u003e\n        Despite my best efforts searching online, I couldn't find the answer. Can you name one British Empire citizen living in the US who was drafted into the American military?","cached_query":"\u003e\n        \"I couldn't find this online, can you think of any British Empire citizen living in the US who was drafted into the American military?","answer":"One notable example of a British Empire citizen who was drafted into the American military is John McCrae, a Canadian physician and poet who served in World War I. While he was not drafted into the American military, his story reflects the complex relationship between the British Empire and the United States during times of conflict. \n\nHowever, if you are specifically looking for individuals who were British subjects living in the U.S. and were drafted into the military during events like World War I or World War II, there are many cases of British nationals who had immigrated to the U.S. and were subsequently drafted. \n\nFor instance, during World War I, the Selective Service Act of 1917 required all men aged 21 to 30 to register for the draft, which included immigrants from the British Empire. Many British citizens living in the U.S. at that time were drafted and served in the American military. \n\nIf you have a specific time period or conflict in mind, I can help narrow it down further!","answer_model":"gpt-4.1-nano","uid":"arena-test-66593-66578","arm":"arena","arm_title":"LmArena · GPT-4.1 nano","old":{"query_id":"66593","candidate_id":"66578","split":"test","score":0.28,"scores":{"task_identical":0.93,"context_matches":0.89,"format_ok":0.28,"is_fresh":0.3,"no_missing_ctx":0.55},"semantic_score":0.28,"error":false,"seconds":1.2102784589999942,"sample_sha256":"e9b443751cd1c4c123971520e79862fca4ed2390a7c68a00d93cafd3f5525a50"},"scope_verdict":"answer_quality_only","category_zh":"答案质量，不计缓存错误","reason_zh":"当前请求与缓存请求实质相同，都是要求举出一名被美国征召的英帝国公民。答案没有真正给出合格人物属于答案内容质量问题，任务、格式、上下文和时效本身兼容。","scores":{"task_identical":0.75,"context_matches":0.78,"format_ok":0.75,"is_fresh":0.91,"no_missing_ctx":0.86},"score":0.75,"query_summary_zh":"用户要求举出一位居住在美国、被征召加入美军的英帝国公民。","model_reason_zh":"当前请求要求举出一个“被征召入伍”的英帝国公民，但缓存答案明确表示其唯一点名人物John McCrae并未被征召，且后续仅给出泛泛说明，没有提供符合条件的具体名字。因此缓存答案没有满足请求的核心交付物，属于实体约束和格式完成度不匹配。"},{"query_index":55590,"candidate_index":55443,"query_id":"63587","candidate_id":"63581","split":"test","cosine":0.900421142578125,"candidate_correct":true,"cache_has_group":true,"query":"The King represents the pinnacle of his suit's potential, a mature and seasoned leader who has earned his authority through experience and perseverance. Having navigated the trials and tribulations of his journey, he has developed the wisdom, strategic thinking, and emotional intelligence to rule with compassion and strength. His leadership is characterized by stability, structure, and decisive action, yet he remains humble and empathetic, aware of the weight of his responsibilities. The King embodies the archetype of a man who has grown into his power","cached_query":"The King archetype represents the pinnacle of masculine maturity, forged through trials and experience. A seasoned leader, he has earned his authority through hard-won wisdom, tempered by the fire of adversity. His power is not solely a birthright, but a result of navigating life's challenges, embracing his shadow, and emerging stronger. With a deep understanding of his suit's complexities, he wields his influence with purpose and empathy, balancing tradition with visionary leadership. His masculinity is not just a given, but a","answer":"dynamic force that inspires and uplifts those around him. The King embodies integrity, responsibility, and a commitment to the greater good, recognizing that true leadership is about service rather than domination. He cultivates a sense of community, fostering collaboration and encouraging others to realize their potential.\n\nIn his presence, there is a sense of stability and security, as he navigates the complexities of life with grace and confidence. He understands the importance of mentorship, guiding the next generation with patience and wisdom, while also being open to learning from them. The King is not afraid to confront his own flaws and vulnerabilities; instead, he embraces them as part of his journey, using them to deepen his understanding of himself and others.\n\nHis vision extends beyond immediate concerns, as he seeks to create a legacy that will endure. He balances the weight of tradition with the need for innovation, ensuring that his leadership is both grounded in history and responsive to the evolving needs of his people. The King is a protector, a strategist, and a visionary, embodying the qualities that inspire loyalty and respect.\n\nUltimately, the King archetype represents the ideal of mature masculinity—one that is rooted in authenticity, compassion, and a profound sense of purpose. He stands as a beacon of hope and strength, guiding others through the storms of life while remaining steadfast in his own journey of growth and self-discovery.","answer_model":"gpt-4.1-nano","uid":"arena-test-63587-63581","arm":"arena","arm_title":"LmArena · GPT-4.1 nano","old":{"query_id":"63587","candidate_id":"63581","split":"test","score":0.41,"scores":{"task_identical":0.55,"context_matches":0.84,"format_ok":0.86,"is_fresh":0.41,"no_missing_ctx":0.86},"semantic_score":0.55,"error":false,"seconds":1.278038500000001,"sample_sha256":"e9b443751cd1c4c123971520e79862fca4ed2390a7c68a00d93cafd3f5525a50"},"scope_verdict":"confirmed","category_zh":"续写上下文不兼容","reason_zh":"缓存答案以 dynamic force 开头，只能衔接缓存请求末尾的 but a；当前文本已经在 grown into his power 处结束。原样拼接会断句，属于明确的上下文兼容性错误。","scores":{"task_identical":0.82,"context_matches":0.92,"format_ok":0.83,"is_fresh":0.96,"no_missing_ctx":0.91},"score":0.82,"query_summary_zh":"一段关于“国王”作为成熟领袖的英文描述，强调经验、智慧、同理心及承担责任，末尾停在“grown into his power”。","model_reason_zh":"当前请求是一段关于国王成熟领袖气质的独立文本，结尾是“...grown into his power”；而缓存答案以“dynamic force...”开头，是缓存请求中“His masculinity is not just a given, but a”的直接续写。直接复用会造成上下文指代和文本衔接断开，属于任务与语境不匹配，而非对内容正确性的判断。"},{"query_index":42099,"candidate_index":40446,"query_id":"56457","candidate_id":"75369","split":"test","cosine":0.9603587985038757,"candidate_correct":false,"cache_has_group":true,"query":"\u003e\nA farmer is standing by a river with a lone sheep and a small boat that can only hold the farmer and one additional item or animal at a time; what is the minimum number of crossings required for the farmer to transport the sheep to the other side?","cached_query":"\u003e\nA farmer has a single sheep and a small boat that can only hold the farmer and one additional item at a time. What is the minimum number of river crossings the farmer needs to make to transport the sheep and himself to the other side?","answer":"To transport the sheep and himself across the river using the boat, the farmer needs to make a total of 2 crossings. Here’s how it works:\n\n1. The farmer takes the sheep across the river (1 crossing).\n2. The farmer returns alone to the original side (2nd crossing).\n\nNow both the farmer and the sheep are on the other side of the river. Therefore, the minimum number of river crossings required is 2.","answer_model":"gpt-4.1-nano","uid":"arena-test-56457-75369","arm":"arena","arm_title":"LmArena · GPT-4.1 nano","old":{"query_id":"56457","candidate_id":"75369","split":"test","score":0.45,"scores":{"task_identical":0.77,"context_matches":0.72,"format_ok":0.45,"is_fresh":0.63,"no_missing_ctx":0.75},"semantic_score":0.45,"error":false,"seconds":1.2200052909999997,"sample_sha256":"e9b443751cd1c4c123971520e79862fca4ed2390a7c68a00d93cafd3f5525a50"},"scope_verdict":"answer_quality_only","category_zh":"答案质量，不计缓存错误","reason_zh":"两个请求的实际目标都是让农夫用船把羊运到对岸，农夫必然随船到达。缓存答案对最少次数的推理是否正确属于答案质量，不应作为 Cache 兼容性错误。","scores":{"task_identical":0.81,"context_matches":0.79,"format_ok":0.86,"is_fresh":0.97,"no_missing_ctx":0.88},"score":0.79,"query_summary_zh":"农夫带一只羊在河边，小船只能载农夫和羊，问把羊送到对岸最少需要几次渡河。","model_reason_zh":"当前任务仅要求把羊送到对岸，缓存任务则要求把羊和农夫自己都送到对岸，任务目标不同。缓存答案包含农夫独自返回的额外步骤，并作出“双方都在对岸”的结论，与当前请求的约束不匹配，因此不能按原样复用。"},{"query_index":25774,"candidate_index":47108,"query_id":"62979","candidate_id":"62991","split":"test","cosine":0.9494099617004395,"candidate_correct":true,"cache_has_group":true,"query":"\u003e\n        How many battleships were torpedoed and sunk by destroyers or torpedo boats during World War II?","cached_query":"\u003e\n        What was the number of battleships sunk by torpedoes fired from torpedo boats or destroyers during World War II?","answer":"During World War II, several battleships were sunk by torpedoes fired from torpedo boats or destroyers. Notable instances include:\n\n1. **HMS Prince of Wales** - Sunk by Japanese torpedo bombers, but also hit by torpedoes from destroyers.\n2. **HMS Repulse** - Also sunk by Japanese aircraft, but similarly involved in engagements with torpedoes.\n3. **Bismarck** - Sunk by British forces, including torpedoes from destroyers.\n4. **Yamato** - Sunk by American aircraft, but also involved in engagements with torpedoes.\n\nWhile exact numbers can vary based on definitions and sources, it is generally accepted that a handful of battleships were sunk primarily due to torpedo attacks, with the most significant being the aforementioned examples. The total number of battleships sunk specifically by torpedoes from smaller vessels is relatively low compared to those sunk by air attacks or naval gunfire. \n\nIf you are looking for a precise number, it is often cited that around 4 to 6 battleships were sunk by torpedoes during the war, but this can depend on the criteria used for classification.","answer_model":"gpt-4.1-nano","uid":"arena-test-62979-62991","arm":"arena","arm_title":"LmArena · GPT-4.1 nano","old":{"query_id":"62979","candidate_id":"62991","split":"test","score":0.39,"scores":{"task_identical":0.92,"context_matches":0.93,"format_ok":0.39,"is_fresh":0.46,"no_missing_ctx":0.55},"semantic_score":0.39,"error":false,"seconds":3.7974843749999962,"sample_sha256":"e9b443751cd1c4c123971520e79862fca4ed2390a7c68a00d93cafd3f5525a50"},"scope_verdict":"answer_quality_only","category_zh":"答案质量，不计缓存错误","reason_zh":"两个请求几乎完全相同，都问二战中由驱逐舰或鱼雷艇鱼雷击沉的战列舰数量。答案列举是否准确属于事实正确性，不应纳入 Cache 兼容性判断。","scores":{"task_identical":0.87,"context_matches":0.86,"format_ok":0.84,"is_fresh":0.92,"no_missing_ctx":0.9},"score":0.84,"query_summary_zh":"询问二战中由驱逐舰或鱼雷艇用鱼雷击沉的战列舰数量","model_reason_zh":"两个请求都问二战中由驱逐舰或鱼雷艇发射鱼雷击沉的战列舰数量，任务本身一致；但缓存回答把日本飞机击沉的战列舰也列入例子，并给出“4到6艘”这一更宽泛的鱼雷击沉口径，未严格限定为驱逐舰或鱼雷艇这一实体约束。因此该回答不能原样用于当前请求。"},{"query_index":41370,"candidate_index":7981,"query_id":"422","candidate_id":"424","split":"test","cosine":0.9637069702148438,"candidate_correct":true,"cache_has_group":true,"query":"What is the syntax to add a wildcard path to .gitignore to ignore all files in folders containing a specific string, such as excluding files in any folder with 'DataflowsStaging' in the path?","cached_query":"What is the syntax to ignore files in .gitignore that have a specific string in their folder path, such as excluding all files within folders named DataflowsStagingLakehouse and DataflowsStagingWarehouse by using a wildcard with DataflowsStaging?","answer":"To ignore files in `.gitignore` that are located in folders with specific names, you can use the following syntax. If you want to ignore all files within folders named `DataflowsStagingLakehouse` and `DataflowsStagingWarehouse`, you can use a wildcard pattern that matches any folder starting with `DataflowsStaging`.\n\nHere’s how you can do it:\n\n```plaintext\nDataflowsStaging*/**\n```\n\n### Explanation:\n- `DataflowsStaging*` matches any folder that starts with `DataflowsStaging`, followed by any characters (including none).\n- The `/**` at the end matches all files and subdirectories within those matched folders.\n\n### Example:\nIf your directory structure looks like this:\n\n```\nproject/\n├── DataflowsStagingLakehouse/\n│   ├── file1.txt\n│   └── file2.txt\n├── DataflowsStagingWarehouse/\n│   ├── file3.txt\n│   └── file4.txt\n└── otherFolder/\n    ├── file5.txt\n    └── file6.txt\n```\n\nWith the above `.gitignore` entry, all files within `DataflowsStagingLakehouse` and `DataflowsStagingWarehouse` will be ignored, while files in `otherFolder` will not be affected.\n\n### Additional Notes:\n- Make sure that your `.gitignore` file is located at the root of your Git repository for the patterns to apply correctly.\n- If you want to ignore only specific file types within those folders, you can modify the pattern accordingly (e.g., `DataflowsStaging*/**/*.txt` to ignore only `.txt` files).","answer_model":"gpt-4.1-nano","uid":"arena-test-422-424","arm":"arena","arm_title":"LmArena · GPT-4.1 nano","old":{"query_id":"422","candidate_id":"424","split":"test","score":0.36,"scores":{"task_identical":0.36,"context_matches":0.71,"format_ok":0.8,"is_fresh":0.85,"no_missing_ctx":0.92},"semantic_score":0.36,"error":false,"seconds":0.9930771249999992,"sample_sha256":"e9b443751cd1c4c123971520e79862fca4ed2390a7c68a00d93cafd3f5525a50"},"scope_verdict":"confirmed","category_zh":"路径约束不一致","reason_zh":"当前请求要求匹配路径任意位置包含 DataflowsStaging 的文件夹；缓存请求和答案采用 DataflowsStaging*，只覆盖名称以该字符串开头的文件夹，范围约束不同。","scores":{"task_identical":0.82,"context_matches":0.85,"format_ok":0.87,"is_fresh":0.97,"no_missing_ctx":0.9},"score":0.82,"query_summary_zh":"询问 .gitignore 中使用通配符路径忽略路径中含指定字符串（如 DataflowsStaging）的文件夹内所有文件的语法。","model_reason_zh":"缓存请求限定为以 DataflowsStaging 开头的文件夹（DataflowsStaging*/**），而当前请求要求匹配路径中任意位置包含 DataflowsStaging 的文件夹；两者约束不同，直接复用会漏掉不以该字符串开头的场景。除此之外语言、格式、长度和时效性均无问题。"},{"query_index":79115,"candidate_index":5027,"query_id":"11280053","candidate_id":"9521464","split":"calibration","cosine":0.8722521662712097,"candidate_correct":true,"cache_has_group":true,"query":"drugs for high blood pressure uk","cached_query":"drugs for high blood pressure","answer":"are usually called what?\nA. antihypertensives\nB. antihistamines\nC. anticoagulants\nD. antipyretics\nAnswer: A","answer_model":"llama_3_8b","uid":"search_llama-calibration-11280053-9521464","arm":"search_llama","arm_title":"SearchQueries · Llama-3-8B","old":{"query_id":"11280053","candidate_id":"9521464","split":"calibration","score":0.37,"scores":{"task_identical":0.37,"context_matches":0.45,"format_ok":0.66,"is_fresh":0.95,"no_missing_ctx":0.95},"semantic_score":0.37,"error":false,"seconds":0.7720360419999999,"sample_sha256":"8aa11a415528430027a58f209139cdce247e6bcb62d290ace7755f73c07001e3"},"scope_verdict":"confirmed","category_zh":"任务与地域约束不一致","reason_zh":"当前请求要英国可用的高血压药物列表；缓存请求是一般性高血压药物问题，答案又是药物类别选择题。交付物、地域约束和输出形式都不兼容。","scores":{"task_identical":0.75,"context_matches":0.89,"format_ok":0.75,"is_fresh":0.96,"no_missing_ctx":0.9},"score":0.75,"query_summary_zh":"询问英国高血压药物","model_reason_zh":"当前请求要的是英国可用的高血压药物列表，而缓存请求和答案是一个选择题：高血压药物通常被称为什么，答案是降压药。二者任务类型不同，缓存答案未提供任何具体药物，且缺少英国用药背景，无法直接复用。"},{"query_index":67729,"candidate_index":13848,"query_id":"7708802","candidate_id":"8946778","split":"calibration","cosine":0.9140537977218628,"candidate_correct":true,"cache_has_group":true,"query":"did obama shut down government","cached_query":"did obama shut down government over obamacare","answer":"The government shutdown in 2013 was primarily a result of a budgetary standoff between congressional Republicans and the Obama administration over the Affordable Care Act (ACA), commonly known as Obamacare. Congressional Republicans sought to defund or delay the implementation of the ACA","answer_model":"gpt-4o-mini","uid":"search_gpt-calibration-7708802-8946778","arm":"search_gpt","arm_title":"SearchQueries · GPT-4o mini","old":{"query_id":"7708802","candidate_id":"8946778","split":"calibration","score":0.15,"scores":{"task_identical":0.15,"context_matches":0.38,"format_ok":0.71,"is_fresh":0.82,"no_missing_ctx":0.83},"semantic_score":0.15,"error":false,"seconds":0.8695057909999999,"sample_sha256":"7454d352b5169e64f1bff45035d301e66772b240461823bcc2e07d88be9e61e5"},"scope_verdict":"confirmed","category_zh":"回答结构被截断","reason_zh":"缓存回答在解释2013年政府停摆时于句子中途结束，没有给出完整结论。问题主题相近，但答案不能作为完整回复原样返回，属于格式完整性错误。","scores":{"task_identical":0.78,"context_matches":0.85,"format_ok":0.86,"is_fresh":0.93,"no_missing_ctx":0.92},"score":0.78,"query_summary_zh":"用户询问奥巴马是否曾导致政府停摆。","model_reason_zh":"缓存回答以“共和党人试图废除或延迟实施ACA”戛然而止，没有明确回答“奥巴马是否关停政府”的核心问题，属于结构上未完成的输出。当前请求虽与缓存请求属同一历史议题，但需要完整结论，因此不能直接复用。此问题为固定历史事实，不涉及时效性。"}]</script><script>
+'use strict';const DATA=JSON.parse(document.getElementById('data').textContent),ROOT=document.getElementById('cases');const D={task_identical:'任务一致性',context_matches:'实体与条件',format_ok:'格式与完整性',is_fresh:'时效性',no_missing_ctx:'上下文'};
+function el(t,c,x){const n=document.createElement(t);n.className=c||'';if(x!==undefined)n.textContent=x;return n}function card(r,i){const d=el('details','case');d.open=i===0;const s=el('summary'),n=el('span','num',String(i+1).padStart(2,'0')),m=el('div','summary-main'),tags=el('div','tags');tags.append(el('span','tag bad','系统放行'),el('span','tag',r.scope_verdict==='confirmed'?'确认误复用':'不计缓存错误'),el('span','tag muted',r.arm_title));m.append(tags,el('div','title',r.query_summary_zh));s.append(n,m);d.append(s);const c=el('div','content'),v=el('div','verdict '+(r.scope_verdict==='confirmed'?'':'quality'));v.append(el('h3','',r.category_zh),el('p','',r.manual_reason_zh));c.append(v);const g=el('div','grid');for(const [label,text,cls] of [['01 / 当前问题',r.query,''],['02 / 缓存问题',r.cached_query,''],['03 / 缓存回答',r.answer,'answer']]){const b=el('div','block '+cls);b.append(el('div','label',label),el('pre','',text));g.append(b)}c.append(g);const sg=el('div','score-grid');sg.append(el('div','label','04 / JEV 五项分数 · 虚线为 0.75'));for(const [k,label] of Object.entries(D)){const row=el('div','score'),track=el('div','track'),fill=el('div','fill');fill.style.width=(r.scores[k]*100)+'%';track.append(fill);row.append(el('span','',label),track,el('span','',r.scores[k].toFixed(2)));sg.append(row)}c.append(sg);const sr=el('div','source-reason');sr.append(el('strong','',`模型标注原因：`),document.createTextNode(r.model_reason_zh));c.append(sr);d.append(c);return d}function render(f='all'){const rows=DATA.filter(r=>f==='all'||r.scope_verdict===f);ROOT.replaceChildren(...rows.map(card))}document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');render(b.dataset.filter)});render();
+</script></body></html>
