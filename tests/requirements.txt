@@ -25,6 +25,8 @@ langchain==0.0.352
 cohere==4.57
 redis-om==0.2.1
 sqlalchemy==2.0.36
+docarray==0.40.1
+pydantic==1.10.13
 mock
 pexpect
 spacy==3.7.5
