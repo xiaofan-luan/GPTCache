@@ -1,3 +1,5 @@
+from datetime import datetime
+from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from gptcache.adapter.api import _get_eval
@@ -65,3 +67,35 @@ def test_get_eval_jev():
     assert isinstance(evaluation, JevEvaluationClass)
     evaluation = _get_eval("typesafe", {"api_key": "test-key"})
     assert isinstance(evaluation, JevEvaluationClass)
+
+
+def test_freshness_receives_cache_date_and_has_separate_criteria():
+    evaluation = JevEvaluation(api_key="test-key")
+    response = Mock()
+    response.json.return_value = {
+        "answers": {key: {"noul": 0.9} for key in evaluation.DIMENSIONS}
+    }
+    with patch("requests.post", return_value=response) as post:
+        evaluation.evaluation(
+            {"question": "q"},
+            {"question": "q", "answer": "a",
+             "cache_data": SimpleNamespace(create_on=datetime(2026, 9, 1))},
+        )
+    payload = post.call_args.kwargs["json"]
+    assert "2026-09-01" in payload["questions"]["is_fresh"]["instructions"]
+    assert payload["questions"]["is_fresh"]["criteria"] != payload["questions"]["format_ok"]["criteria"]
+    assert "Answer date: 2026-09-01" in payload["state"]
+
+
+def test_reuse_questions_exclude_answer_correctness_and_define_format_boundary():
+    questions = JevEvaluation(api_key="test-key")._questions()
+    for name in ["task_identical", "context_matches", "format_ok", "no_missing_ctx"]:
+        assert "Answer correctness is outside" in questions[name]["instructions"]
+    format_prompt = questions["format_ok"]["instructions"]
+    assert "one paragraph versus multiple paragraphs" in format_prompt
+    assert "structurally unfinished answer" in format_prompt
+    assert "ending mid-sentence or after a colon" in format_prompt
+    assert "do not invent one" in format_prompt
+    task_prompt = questions["task_identical"]["instructions"]
+    assert "Allow paraphrases" in task_prompt
+    assert "same material operation and deliverable" in task_prompt
