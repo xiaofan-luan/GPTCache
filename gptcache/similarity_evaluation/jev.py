@@ -88,7 +88,13 @@ def reuse_questions(answer_date: str = None, now: str = None) -> Dict[str, Any]:
                 "goal, action, requested output, and required subtask in the current "
                 "request must still be covered. Reject when either request adds, removes, "
                 "or changes a material operation, deliverable, target, required scope, or "
-                "explicit instruction. A broader cached request is compatible only when "
+                "explicit instruction. Treat a real objective-strength change as material: "
+                "an explicitly optimal or guaranteed result is not satisfied by a merely "
+                "feasible, reasonable, or heuristic result. However, synonymous objective "
+                "terms such as 'ideal', 'best', and 'most effective', or an implicit versus "
+                "explicit 'always required', are compatible when they ask the same question. "
+                "A broader cached request is "
+                "compatible only when "
                 "the candidate answer visibly contains the complete deliverable requested "
                 "now and introduces no conflicting requirement."
             ),
@@ -97,36 +103,57 @@ def reuse_questions(answer_date: str = None, now: str = None) -> Dict[str, Any]:
             "type": "noul",
             "criteria": criteria,
             "instructions": correctness_scope + (
-                "Compare information and constraints stated in both requests, then verify "
-                "that the candidate answer is written for the current request's stated "
-                "information and constraints. Treat "
-                "synonyms, equivalent units, and wording variations as matching. Reject "
-                "only when different entities, source text, numbers, dates, versions, "
-                "locations, or constraints would materially change the response required "
-                "by the current request, or when the answer visibly omits or conflicts "
-                "with such an explicit constraint. This is a compatibility check: do not "
-                "validate claims in the candidate answer against external facts."
+                "Compare every explicit request-side constraint before deciding. Check: "
+                "(1) target entities and named options; (2) supplied source text; "
+                "(3) numbers, dates, versions, units, and quantities; (4) geography, "
+                "jurisdiction, organization, and requested source; (5) negation, "
+                "quantifiers, comparison, optimization, and modality; (6) exact matching "
+                "semantics such as contains, starts with, equals, before, and after; and "
+                "(7) fictional premises or capability distinctions such as a real ability "
+                "versus pretending. Treat semantic equivalents, synonyms such as rooster "
+                "and cockerel, equivalent units, and harmless wording variations as "
+                "matching. Do not demand literal identity and do not reject a broader "
+                "description when the candidate still directly covers the current entity. "
+                "A different named option, region, requested source, or matching rule is "
+                "material only when it would change the response required now. Reject when "
+                "a difference materially changes the required response, or the candidate "
+                "visibly uses or omits a conflicting explicit constraint. This is a "
+                "compatibility check: do not validate claims against external facts."
             ),
         },
         "format_ok": {
             "type": "noul",
             "criteria": criteria,
             "instructions": correctness_scope + (
-                "Evaluate only the explicit output contract of the current request: "
-                "required language, structure, length, item count, tone, and output "
-                "format and required structural deliverables. First check whether the "
-                "answer is structurally complete. Strong failure signals include ending "
-                "mid-sentence or after a colon, an unclosed Markdown marker, promising a "
-                "list/steps/key points but supplying none, or stopping after the first "
-                "item of an explicitly plural list. If the request has no explicit "
-                "output constraint, do not invent one. Harmless extra detail, prose "
-                "differences, or a broader explanation "
-                "are acceptable unless explicitly forbidden. Reject an explicit contract "
-                "violation such as one paragraph versus multiple paragraphs, exactly N "
-                "items, JSON only, a word limit, or a required language. Also reject a "
-                "structurally unfinished answer. A "
-                "clipped final elaboration is acceptable when the requested core response "
-                "and required structure are already complete."
+                "Evaluate both direct returnability and the explicit output contract. "
+                "First check structural completeness before style. Decide whether the "
+                "candidate is a standalone response or a literal continuation fragment. "
+                "A complete sentence, paragraph, letter, template, explanation, or code "
+                "block is standalone; do not concatenate it to the request. Only when the "
+                "candidate itself begins as a lowercase or otherwise obvious mid-sentence "
+                "fragment, concatenate the exact current request and candidate answer and "
+                "reject if they do not join grammatically and semantically, or if the "
+                "fragment depends on words or punctuation present only in the cached "
+                "request. Reject a mid-sentence "
+                "beginning or ending, an ending after a colon, unclosed quotation, code "
+                "block, or Markdown marker, and an unfinished promised list, set of steps, "
+                "or key points. Reject when a requested core operation is explicitly left "
+                "unimplemented as TODO, mock, echo, or 'replace this with the real call' "
+                "text. Do not reject ordinary user-fillable fields in a delivered template, "
+                "sample configuration values, stated assumptions, or code merely because "
+                "its implementation might be incorrect. This checks whether "
+                "the deliverable exists, not whether its facts, examples, reasoning, or "
+                "code are correct. A clipped optional elaboration is acceptable only when "
+                "the answer starts at a natural boundary and every explicit deliverable "
+                "and promised structure is already complete. "
+                "Then check the current request's explicit contract: required language, "
+                "structure, hierarchy depth, length, exact item count, tone, and output "
+                "format. Treat 'only', 'just', 'exactly', 'without explanation', literal "
+                "labels, required suffixes, and case-sensitive tokens as hard constraints. "
+                "Reject violations such as one paragraph versus multiple paragraphs, "
+                "exactly N items, JSON only, code only, a word limit, or a required "
+                "language. If the request has no explicit output constraint, do not invent "
+                "one; harmless extra detail is acceptable unless explicitly forbidden."
             ),
         },
         "is_fresh": freshness_question(answer_date=answer_date, now=now),
@@ -134,11 +161,23 @@ def reuse_questions(answer_date: str = None, now: str = None) -> Dict[str, Any]:
             "type": "noul",
             "criteria": criteria,
             "instructions": correctness_scope + (
-                "Reject only when reuse genuinely depends on unavailable prior messages, "
-                "missing attachments, another user's private information, user location, "
-                "or an unresolved reference such as 'this' or 'the above'. Do not infer "
-                "missing context merely because a request is short, the answer states "
-                "general assumptions, or the two requests use different wording."
+                "Judge only whether the current request supplies all input needed for "
+                "reuse. Reject when the current request or its supplied source material is "
+                "truncated inside an unfinished clause, quotation, parameter list, code "
+                "fragment, source passage, or conditional phrase, and the candidate relies "
+                "on specific missing material that appears only in the cached request. "
+                "Require visible evidence of that dependency; do not infer it merely from "
+                "minor wording differences between paraphrased requests. When the candidate "
+                "is a complete standalone response to two self-contained paraphrases, mark "
+                "context sufficient. Also reject "
+                "dependencies on unavailable prior messages, missing attachments, another "
+                "user's private information, user location, or unresolved references such "
+                "as 'this', 'the above', or 'the given code'. Do not reject an intentional "
+                "continuation prefix solely because it ends mid-sentence; format_ok checks "
+                "whether the candidate attaches to it correctly. Do not use this condition "
+                "to judge candidate-answer formatting or completeness. Do not infer missing "
+                "context merely because a request is short, the answer states general "
+                "assumptions, or the requests use different wording."
             ),
         },
     }
@@ -173,7 +212,7 @@ class JevEvaluation(SimilarityEvaluation):
 
             cache.init(
                 similarity_evaluation=JevEvaluation(),
-                config=Config(similarity_threshold=0.75),
+                config=Config(similarity_threshold=0.70),
             )
     """
 

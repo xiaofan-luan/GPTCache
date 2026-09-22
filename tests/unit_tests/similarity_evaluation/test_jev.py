@@ -35,6 +35,10 @@ def test_jev_evaluation():
     assert mock_post.call_args.kwargs["headers"]["Authorization"] == "Bearer test-key"
 
 
+def test_documented_similarity_threshold_is_balanced_default():
+    assert "similarity_threshold=0.70" in JevEvaluationClass.__doc__
+
+
 def test_jev_evaluation_min_score():
     evaluation = JevEvaluation(api_key="test-key")
     mock_resp = Mock()
@@ -93,9 +97,24 @@ def test_reuse_questions_exclude_answer_correctness_and_define_format_boundary()
         assert "Answer correctness is outside" in questions[name]["instructions"]
     format_prompt = questions["format_ok"]["instructions"]
     assert "one paragraph versus multiple paragraphs" in format_prompt
-    assert "structurally unfinished answer" in format_prompt
-    assert "ending mid-sentence or after a colon" in format_prompt
+    assert "mid-sentence beginning or ending" in format_prompt
+    assert "TODO, mock, echo" in format_prompt
+    assert "Only when the candidate itself begins" in format_prompt
+    assert "do not concatenate it to the request" in format_prompt
+    assert "user-fillable fields" in format_prompt
+    assert "case-sensitive tokens" in format_prompt
+    assert "clipped optional elaboration" in format_prompt
     assert "do not invent one" in format_prompt
     task_prompt = questions["task_identical"]["instructions"]
     assert "Allow paraphrases" in task_prompt
     assert "same material operation and deliverable" in task_prompt
+    assert "real objective-strength change" in task_prompt
+    assert "'ideal', 'best', and 'most effective'" in task_prompt
+    context_prompt = questions["context_matches"]["instructions"]
+    assert "exact matching semantics" in context_prompt
+    assert "geography, jurisdiction, organization, and requested source" in context_prompt
+    missing_prompt = questions["no_missing_ctx"]["instructions"]
+    assert "truncated inside an unfinished clause" in missing_prompt
+    assert "Require visible evidence" in missing_prompt
+    assert "format_ok checks" in missing_prompt
+    assert "Do not use this condition to judge candidate-answer formatting" in missing_prompt
