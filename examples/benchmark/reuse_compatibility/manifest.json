@@ -61,14 +61,25 @@
       "role": "Codex candidate-label summary"
     },
     "summary.json": {
-      "sha256": "c5107214c38645e2901c0eac81fcacdaebc0a2d918ac7630aec50ccb13b9f035",
-      "bytes": 861,
-      "role": "current baseline summary"
+      "sha256": "2f925f2fc81c4452d62e9d226536c23bb2faffe98685cfe530dddf039df18eff",
+      "bytes": 1830,
+      "role": "current baseline and reranker comparison summary"
     },
     "WRONG_REUSE_075.html": {
       "sha256": "557380cb27c019d253675ad627d3f60cc7cfc9bdd142723b0837a70f186bed32",
       "bytes": 40108,
       "role": "historical prior-prompt false-reuse audit"
+    },
+    "RERANKER_COMPARISON.md": {
+      "sha256": "65de6ae5d8df9844bf0c18de95523a0285eec85ff6f98853801982b7bb5006e7",
+      "bytes": 3257,
+      "role": "SBERT cross-encoder versus JEV analysis"
+    },
+    "sbert_crossencoder_scores.jsonl": {
+      "sha256": "1dda0eff56ce2c931199c3f3d405f524a7b9c770cc3fce7cb774d45b12e30993",
+      "bytes": 233959,
+      "role": "SBERT cross-encoder scores for all benchmark cases",
+      "rows": 1536
     }
   }
 }

@@ -51,6 +51,8 @@
 - `codex_label.py`、`codex_label_schema.json`：结构化Codex批量标注器及输出Schema。
 - `codex_labels.jsonl`、`codex_label_conflicts.jsonl`、`codex_conflict_adjudication.jsonl`：首轮标签、冲突上下文和high-reasoning复审结果。
 - `analyze_codex_labels.py`、`finalize_codex_labels.py`：冲突分析、合并候选标签并重算指标。
+- `sbert_crossencoder_scores.jsonl`：仓库默认`SbertCrossencoderEvaluation`模型在全部1,536条上的原始分数。
+- `RERANKER_COMPARISON.md`：SBERT Cross-Encoder Reranker与JEV的全量、test split和分数据组对比。
 - `summary.json`：标签分布和基线指标。
 - `manifest.json`：来源版本、文件哈希、行数和评测协议。
 - `benchmark.py`：校验数据、运行JEV或评分预测。
@@ -71,6 +73,8 @@
 | 应复用召回率 | 72.1% |
 
 另有1条系统命中和3条系统拒绝对应`uncertain`标签，不计入精确率和召回率。对Codex复审候选标签，同一结果为353条正确复用、10条误复用、98条漏复用，精确率97.3%，召回率78.3%。
+
+作为对照，仓库默认SBERT Cross-Encoder Reranker在0.80阈值下，对Codex复审候选标签放行880条，其中371条正确复用、508条错误复用，精确率42.2%、召回率82.3%。JEV将错误复用减少98.0%，F1从55.8%提高到86.7%；完整分析见`RERANKER_COMPARISON.md`。
 
 ## 使用
 
@@ -93,6 +97,15 @@
 .venv/bin/python examples/benchmark/reuse_compatibility/benchmark.py score \
   --predictions examples/benchmark/reuse_compatibility/baseline_jev_070.jsonl \
   --labels examples/benchmark/reuse_compatibility/codex_adjudicated_labels.jsonl
+```
+
+复算SBERT Cross-Encoder Reranker在默认0.80阈值下的指标：
+
+```bash
+.venv/bin/python examples/benchmark/reuse_compatibility/benchmark.py score \
+  --predictions examples/benchmark/reuse_compatibility/sbert_crossencoder_scores.jsonl \
+  --labels examples/benchmark/reuse_compatibility/codex_adjudicated_labels.jsonl \
+  --threshold 0.80
 ```
 
 调用当前仓库的 `JevEvaluation` 重新评测全部1,536条：

@@ -36,5 +36,39 @@
     },
     "reuse_precision": 0.9724517906336089,
     "reuse_recall": 0.7827050997782705
+  },
+  "sbert_crossencoder_080_codex_adjudicated": {
+    "model": "cross-encoder/quora-distilroberta-base",
+    "threshold": 0.8,
+    "hits": 880,
+    "hit_rate": 0.5729166666666666,
+    "outcomes": {
+      "correct_refusal": 571,
+      "correct_reuse": 371,
+      "uncertain_reuse": 1,
+      "missed_reuse": 80,
+      "wrong_reuse": 508,
+      "uncertain_refusal": 5
+    },
+    "reuse_precision": 0.42207053469852107,
+    "reuse_recall": 0.8226164079822617,
+    "f1": 0.5578947368421053
+  },
+  "sbert_crossencoder_080_published": {
+    "model": "cross-encoder/quora-distilroberta-base",
+    "threshold": 0.8,
+    "hits": 880,
+    "hit_rate": 0.5729166666666666,
+    "outcomes": {
+      "correct_refusal": 550,
+      "correct_reuse": 401,
+      "uncertain_reuse": 2,
+      "missed_reuse": 104,
+      "wrong_reuse": 477,
+      "uncertain_refusal": 2
+    },
+    "reuse_precision": 0.45671981776765375,
+    "reuse_recall": 0.7940594059405941,
+    "f1": 0.5798987707881418
   }
 }
