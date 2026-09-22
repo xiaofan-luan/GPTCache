@@ -38,17 +38,18 @@ def validate():
                       "labels": dict(Counter(r["label"] for r in labels))}, ensure_ascii=False))
 
 
-def score(predictions, threshold):
-    labels = {r["uid"]: r for r in rows(ROOT/"labels.jsonl")}
+def score(predictions, threshold, labels_path=None):
+    labels_path = labels_path or ROOT/"labels.jsonl"
+    labels = {r["uid"]: r for r in rows(labels_path)}
     predicted = {r["uid"]: r for r in rows(predictions)}
     assert set(predicted) == set(labels), "predictions must cover every benchmark UID exactly"
     counts = Counter(); errors = 0
     for uid, truth in labels.items():
         row = predicted[uid]; errors += bool(row.get("error"))
-        if "decision" in row:
-            hit = row["decision"] == "reuse"
-        else:
+        if "score" in row:
             hit = not row.get("error", False) and float(row["score"]) >= threshold
+        else:
+            hit = row["decision"] == "reuse"
         label = truth["label"]
         if label == "uncertain": outcome = "uncertain_reuse" if hit else "uncertain_refusal"
         elif hit: outcome = "correct_reuse" if label == "reuse" else "wrong_reuse"
@@ -98,13 +99,14 @@ def main():
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("validate")
     scoring = sub.add_parser("score"); scoring.add_argument("--predictions", type=Path, required=True)
-    scoring.add_argument("--threshold", type=float, default=0.75)
+    scoring.add_argument("--labels", type=Path)
+    scoring.add_argument("--threshold", type=float, default=0.70)
     running = sub.add_parser("run"); running.add_argument("--output", type=Path, required=True)
-    running.add_argument("--threshold", type=float, default=0.75)
+    running.add_argument("--threshold", type=float, default=0.70)
     running.add_argument("--workers", type=int, default=8)
     args = parser.parse_args()
     if args.command == "validate": validate()
-    elif args.command == "score": score(args.predictions, args.threshold)
+    elif args.command == "score": score(args.predictions, args.threshold, args.labels)
     else: run(args.output, args.threshold, args.workers)
 
 

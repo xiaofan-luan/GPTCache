@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "generated_on": "2026-09-22",
   "records": 1536,
   "label_counts": {
@@ -7,10 +7,10 @@
     "reuse": 505,
     "uncertain": 4
   },
-  "threshold": 0.75,
+  "threshold": 0.7,
   "jev_model": "jev-latest",
   "jev_prompt_source": "gptcache/similarity_evaluation/jev.py",
-  "jev_prompt_source_sha256": "16283f33f5753fecc1367f89802c629555f5dbcf6527db2469b335a7d661aa67",
+  "jev_prompt_source_sha256": "d1497f21a1a96af728d7a8044d4c470033efbbfbe464b081a23eebce46d9e642",
   "scope": "request information, output contract, context, and freshness; answer correctness excluded",
   "sources": [
     {
@@ -26,25 +26,47 @@
     "cases.jsonl": {
       "sha256": "97eedb5978f4f9a5558eee29a26a26ca269a839c2e3d9654cf31422525993627",
       "bytes": 2099239,
+      "role": "benchmark cases",
       "rows": 1536
     },
     "labels.jsonl": {
       "sha256": "797c0c8a69946f195c04629caa31a16aad1d1d23328cbb5ce823b726ff669e22",
       "bytes": 1376532,
+      "role": "published model-assisted labels",
+      "rows": 1536
+    },
+    "baseline_jev_070.jsonl": {
+      "sha256": "fd9c1e838d5468bfde986752ea1d40af3e01ec79a9599aa2fd9f4bd0ee5cb8bd",
+      "bytes": 415915,
+      "role": "current prompt baseline at threshold 0.70",
       "rows": 1536
     },
     "baseline_jev_075.jsonl": {
       "sha256": "bf6157ff03d1c12cf416c69548a9ee454fa6f657341e78664636b97486d14dae",
       "bytes": 407202,
+      "role": "historical prior-prompt baseline at threshold 0.75",
       "rows": 1536
     },
+    "codex_adjudicated_labels.jsonl": {
+      "sha256": "e1b074580dc76adbb4e907c90ff1d7401bb758668c8d62aa71a61091e1c9de8a",
+      "bytes": 1157092,
+      "role": "Codex candidate labels after conflict adjudication",
+      "rows": 1536
+    },
+    "codex_adjudicated_summary.json": {
+      "sha256": "68bc8d90c91253b45b1ca96237e050b24424aecba271a4613d7a6a730d1b17a5",
+      "bytes": 2343,
+      "role": "Codex candidate-label summary"
+    },
     "summary.json": {
-      "sha256": "380b605193667fd262e02a6194d11fc7510101fd0ce7e6f810eea3c2195c3df4",
-      "bytes": 414
+      "sha256": "c5107214c38645e2901c0eac81fcacdaebc0a2d918ac7630aec50ccb13b9f035",
+      "bytes": 861,
+      "role": "current baseline summary"
     },
     "WRONG_REUSE_075.html": {
       "sha256": "557380cb27c019d253675ad627d3f60cc7cfc9bdd142723b0837a70f186bed32",
-      "bytes": 40108
+      "bytes": 40108,
+      "role": "historical prior-prompt false-reuse audit"
     }
   }
 }

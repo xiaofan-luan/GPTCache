@@ -1,0 +1,72 @@
+{
+  "records": 1536,
+  "codex_model": "gpt-5.6-sol",
+  "codex_reasoning_effort": "medium",
+  "codex_prompt_sha256": "74f99fefe69593181ae149a7866b8d94d3b2ca17cdc69dd5fa255e0e126cb69c",
+  "codex_labels": {
+    "reject": 1095,
+    "reuse": 438,
+    "uncertain": 3
+  },
+  "codex_confidences": {
+    "high": 1510,
+    "medium": 26
+  },
+  "codex_reason_codes": {
+    "format_mismatch": 78,
+    "no_issue": 438,
+    "task_mismatch": 301,
+    "missing_context": 36,
+    "incomplete_output": 433,
+    "constraint_mismatch": 220,
+    "freshness_risk": 30
+  },
+  "published_vs_codex": {
+    "reject_to_reject": 989,
+    "reject_to_reuse": 38,
+    "reuse_to_reject": 102,
+    "reuse_to_reuse": 400,
+    "reuse_to_uncertain": 3,
+    "uncertain_to_reject": 4
+  },
+  "exact_label_agreement": 1389,
+  "conflicts": 147,
+  "by_arm": {
+    "LmArena · GPT-4.1 nano": {
+      "reject": 114,
+      "reuse": 395,
+      "uncertain": 3
+    },
+    "SearchQueries · Llama-3-8B": {
+      "reject": 500,
+      "reuse": 12
+    },
+    "SearchQueries · GPT-4o mini": {
+      "reject": 481,
+      "reuse": 31
+    }
+  },
+  "by_split": {
+    "calibration": {
+      "reject": 285,
+      "reuse": 99
+    },
+    "test": {
+      "reuse": 339,
+      "reject": 810,
+      "uncertain": 3
+    }
+  },
+  "jev_070_against_codex": {
+    "hits": 366,
+    "hit_rate": 0.23828125,
+    "correct_refusal": 1078,
+    "correct_reuse": 347,
+    "missed_reuse": 91,
+    "wrong_reuse": 17,
+    "uncertain_reuse": 2,
+    "uncertain_refusal": 1,
+    "reuse_precision": 0.9532967032967034,
+    "reuse_recall": 0.7922374429223744
+  }
+}

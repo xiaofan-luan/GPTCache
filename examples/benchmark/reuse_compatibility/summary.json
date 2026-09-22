@@ -1,21 +1,40 @@
 {
   "records": 1536,
-  "threshold": 0.75,
+  "threshold": 0.7,
   "label_counts": {
     "reject": 1027,
     "reuse": 505,
     "uncertain": 4
   },
-  "hits": 384,
-  "hit_rate": 0.25,
+  "hits": 366,
+  "hit_rate": 0.23828125,
   "outcomes": {
-    "correct_refusal": 1022,
-    "correct_reuse": 378,
+    "correct_refusal": 1026,
+    "correct_reuse": 364,
     "uncertain_reuse": 1,
-    "missed_reuse": 127,
-    "wrong_reuse": 5,
+    "missed_reuse": 141,
+    "wrong_reuse": 1,
     "uncertain_refusal": 3
   },
-  "reuse_precision": 0.9869451697127938,
-  "reuse_recall": 0.7485148514851485
+  "reuse_precision": 0.9972602739726028,
+  "reuse_recall": 0.7207920792079208,
+  "codex_adjudicated": {
+    "label_counts": {
+      "reject": 1079,
+      "reuse": 451,
+      "uncertain": 6
+    },
+    "hits": 366,
+    "hit_rate": 0.23828125,
+    "outcomes": {
+      "correct_refusal": 1069,
+      "correct_reuse": 353,
+      "uncertain_reuse": 3,
+      "missed_reuse": 98,
+      "wrong_reuse": 10,
+      "uncertain_refusal": 3
+    },
+    "reuse_precision": 0.9724517906336089,
+    "reuse_recall": 0.7827050997782705
+  }
 }

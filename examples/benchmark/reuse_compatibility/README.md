@@ -40,27 +40,33 @@
 
 - `cases.jsonl`：1,536条输入；包含当前请求、缓存请求和缓存回答。
 - `labels.jsonl`：最终兼容性标签、中文原因、原因类别、证据和标注来源。
-- `baseline_jev_075.jsonl`：当前平衡版JEV prompt在0.75阈值下的五项分数与决定。
+- `baseline_jev_070.jsonl`：当前完整性与上下文增强版JEV prompt在0.70阈值下的五项分数与决定。
+- `baseline_jev_075.jsonl`：上一个prompt版本在0.75阈值下的历史基线，保留用于回归比较。
+- `codex_adjudicated_labels.jsonl`：Codex全量首标并对冲突样本复审后的候选标签；不替代`labels.jsonl`。
+- `CODEX_LABELING.md`：Codex标注目标、两阶段协议、标签分布与限制。
+- `codex_label.py`、`codex_label_schema.json`：结构化Codex批量标注器及输出Schema。
+- `codex_labels.jsonl`、`codex_label_conflicts.jsonl`、`codex_conflict_adjudication.jsonl`：首轮标签、冲突上下文和high-reasoning复审结果。
+- `analyze_codex_labels.py`、`finalize_codex_labels.py`：冲突分析、合并候选标签并重算指标。
 - `summary.json`：标签分布和基线指标。
 - `manifest.json`：来源版本、文件哈希、行数和评测协议。
 - `benchmark.py`：校验数据、运行JEV或评分预测。
-- `WRONG_REUSE_075.html`：0.75阈值下全部误复用候选的可视化审计。
+- `WRONG_REUSE_075.html`：上一个prompt与0.75阈值的历史误复用审计。
 - `PROMPT_COMPARISON.md`：原prompt、宽松版、平衡版及不同阈值的指标对比。
 
 ## 当前基线
 
-严格排除答案正确性后，当前平衡版prompt与0.75阈值的结果：
+严格排除答案正确性后，当前增强版prompt与0.70阈值对已发布标签的结果：
 
 | 指标 | 结果 |
 | --- | ---: |
-| 系统命中 | 384 / 1,536（25.0%） |
-| 正确复用 | 378 |
-| 误复用 | 5 |
-| 漏复用 | 127 |
-| 复用精确率 | 98.7% |
-| 应复用召回率 | 74.9% |
+| 系统命中 | 366 / 1,536（23.8%） |
+| 正确复用 | 364 |
+| 误复用 | 1 |
+| 漏复用 | 141 |
+| 复用精确率 | 99.7% |
+| 应复用召回率 | 72.1% |
 
-另有1条系统命中和3条系统拒绝对应 `uncertain` 标签，不计入精确率和召回率。
+另有1条系统命中和3条系统拒绝对应`uncertain`标签，不计入精确率和召回率。对Codex复审候选标签，同一结果为353条正确复用、10条误复用、98条漏复用，精确率97.3%，召回率78.3%。
 
 ## 使用
 
@@ -74,14 +80,22 @@
 
 ```bash
 .venv/bin/python examples/benchmark/reuse_compatibility/benchmark.py score \
-  --predictions examples/benchmark/reuse_compatibility/baseline_jev_075.jsonl
+  --predictions examples/benchmark/reuse_compatibility/baseline_jev_070.jsonl
+```
+
+使用Codex复审候选标签评分：
+
+```bash
+.venv/bin/python examples/benchmark/reuse_compatibility/benchmark.py score \
+  --predictions examples/benchmark/reuse_compatibility/baseline_jev_070.jsonl \
+  --labels examples/benchmark/reuse_compatibility/codex_adjudicated_labels.jsonl
 ```
 
 调用当前仓库的 `JevEvaluation` 重新评测全部1,536条：
 
 ```bash
 JEV=... .venv/bin/python examples/benchmark/reuse_compatibility/benchmark.py run \
-  --output /tmp/jev_predictions.jsonl --threshold 0.75 --workers 12
+  --output /tmp/jev_predictions.jsonl --threshold 0.70 --workers 12
 ```
 
 JEV调用逐条落盘，可使用同一个输出文件断点续跑。评分时要求预测文件完整覆盖1,536个UID；API错误按拒绝处理并单独计数。
@@ -103,4 +117,4 @@ JEV调用逐条落盘，可使用同一个输出文件断点续跑。评分时�
 - SearchQueries随附回答存在大量截断、重复和无实质内容文本；
 - 远端 `jev-latest` 是可变别名，未来重跑的分数可能变化；
 - 标注理由不验证答案内容的事实正确性；
-- 阈值0.75来自本数据集上的实验，应用到其他业务域时应使用独立校准集确认。
+- 阈值0.70来自本数据集上的重新校准；应用到其他业务域时应使用独立校准集确认。

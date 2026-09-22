@@ -24,7 +24,7 @@ UPSTREAM_KEY = os.getenv("GPTCACHE_UPSTREAM_KEY", "")
 MODEL = os.getenv("GPTCACHE_UPSTREAM_MODEL", "deepseek-v4-flash")
 JEVI_URL = "https://api.typesafe.ai/v1/systemone"
 JEVI_KEY = os.getenv("JEV")
-THRESHOLD = float(os.getenv("GPTCACHE_THRESHOLD", "0.75"))
+THRESHOLD = float(os.getenv("GPTCACHE_THRESHOLD", "0.70"))
 PORT = int(os.getenv("GPTCACHE_PORT", "8765"))
 
 MEMORY = []  # list of {"question": ..., "answer": ..., "cached_at": iso-date}
