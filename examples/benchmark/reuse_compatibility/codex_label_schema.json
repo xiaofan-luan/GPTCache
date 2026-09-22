@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "labels": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "properties": {
+          "uid": {"type": "string"},
+          "label": {"type": "string", "enum": ["reuse", "reject", "uncertain"]},
+          "task_compatible": {"type": "string", "enum": ["yes", "no", "uncertain"]},
+          "constraints_compatible": {"type": "string", "enum": ["yes", "no", "uncertain"]},
+          "format_complete": {"type": "string", "enum": ["yes", "no", "uncertain"]},
+          "context_sufficient": {"type": "string", "enum": ["yes", "no", "uncertain"]},
+          "freshness_safe": {"type": "string", "enum": ["yes", "no", "uncertain"]},
+          "reason_code": {
+            "type": "string",
+            "enum": ["no_issue", "task_mismatch", "constraint_mismatch", "format_mismatch", "incomplete_output", "missing_context", "freshness_risk", "uncertain"]
+          },
+          "reason_zh": {"type": "string"},
+          "evidence_field": {"type": "string", "enum": ["current_request", "cached_request", "cached_answer", "none"]},
+          "evidence_quote": {"type": "string"},
+          "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+          "content_correctness_ignored": {"type": "boolean", "const": true}
+        },
+        "required": [
+          "uid", "label", "task_compatible", "constraints_compatible",
+          "format_complete", "context_sufficient", "freshness_safe",
+          "reason_code", "reason_zh", "evidence_field", "evidence_quote",
+          "confidence", "content_correctness_ignored"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["labels"],
+  "additionalProperties": false
+}

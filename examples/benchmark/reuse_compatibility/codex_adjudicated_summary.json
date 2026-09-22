@@ -1,0 +1,81 @@
+{
+  "records": 1536,
+  "protocol": {
+    "agreement_rows": 1389,
+    "conflict_rows_adjudicated": 147,
+    "first_pass_model": "gpt-5.6-sol",
+    "first_pass_effort": "medium",
+    "adjudication_model": "gpt-5.6-sol",
+    "adjudication_effort": "high",
+    "prompt_sha256": "74f99fefe69593181ae149a7866b8d94d3b2ca17cdc69dd5fa255e0e126cb69c"
+  },
+  "labels": {
+    "reject": 1079,
+    "reuse": 451,
+    "uncertain": 6
+  },
+  "reason_codes": {
+    "format_mismatch": 75,
+    "no_issue": 451,
+    "task_mismatch": 300,
+    "missing_context": 32,
+    "incomplete_output": 432,
+    "constraint_mismatch": 217,
+    "freshness_risk": 29
+  },
+  "confidences": {
+    "high": 1508,
+    "medium": 28
+  },
+  "label_sources": {
+    "published_codex_first_pass_agreement": 1389,
+    "codex_high_conflict_adjudication": 147
+  },
+  "conflict_triad": {
+    "published_reject__first_reuse__adjudicated_reject": 4,
+    "published_reject__first_reuse__adjudicated_reuse": 34,
+    "published_reuse__first_reject__adjudicated_reject": 82,
+    "published_reuse__first_reject__adjudicated_reuse": 16,
+    "published_reuse__first_reject__adjudicated_uncertain": 4,
+    "published_reuse__first_uncertain__adjudicated_reject": 1,
+    "published_reuse__first_uncertain__adjudicated_uncertain": 2,
+    "published_uncertain__first_reject__adjudicated_reject": 3,
+    "published_uncertain__first_reject__adjudicated_reuse": 1
+  },
+  "final_vs_published": {
+    "published_reject__final_reject": 993,
+    "published_reuse__final_reuse": 416,
+    "published_uncertain__final_reject": 3,
+    "published_reuse__final_reject": 83,
+    "published_reject__final_reuse": 34,
+    "published_uncertain__final_reuse": 1,
+    "published_reuse__final_uncertain": 6
+  },
+  "by_arm": {
+    "LmArena · GPT-4.1 nano": {
+      "reject": 101,
+      "reuse": 405,
+      "uncertain": 6
+    },
+    "SearchQueries · Llama-3-8B": {
+      "reject": 499,
+      "reuse": 13
+    },
+    "SearchQueries · GPT-4o mini": {
+      "reject": 479,
+      "reuse": 33
+    }
+  },
+  "jev_070_against_codex_adjudicated": {
+    "hits": 366,
+    "hit_rate": 0.23828125,
+    "correct_refusal": 1069,
+    "correct_reuse": 353,
+    "missed_reuse": 98,
+    "uncertain_refusal": 3,
+    "wrong_reuse": 10,
+    "uncertain_reuse": 3,
+    "reuse_precision": 0.9724517906336089,
+    "reuse_recall": 0.7827050997782705
+  }
+}

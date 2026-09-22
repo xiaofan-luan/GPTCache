@@ -1,0 +1,74 @@
+{
+  "records": 1536,
+  "threshold": 0.7,
+  "label_counts": {
+    "reject": 1027,
+    "reuse": 505,
+    "uncertain": 4
+  },
+  "hits": 366,
+  "hit_rate": 0.23828125,
+  "outcomes": {
+    "correct_refusal": 1026,
+    "correct_reuse": 364,
+    "uncertain_reuse": 1,
+    "missed_reuse": 141,
+    "wrong_reuse": 1,
+    "uncertain_refusal": 3
+  },
+  "reuse_precision": 0.9972602739726028,
+  "reuse_recall": 0.7207920792079208,
+  "codex_adjudicated": {
+    "label_counts": {
+      "reject": 1079,
+      "reuse": 451,
+      "uncertain": 6
+    },
+    "hits": 366,
+    "hit_rate": 0.23828125,
+    "outcomes": {
+      "correct_refusal": 1069,
+      "correct_reuse": 353,
+      "uncertain_reuse": 3,
+      "missed_reuse": 98,
+      "wrong_reuse": 10,
+      "uncertain_refusal": 3
+    },
+    "reuse_precision": 0.9724517906336089,
+    "reuse_recall": 0.7827050997782705
+  },
+  "sbert_crossencoder_080_codex_adjudicated": {
+    "model": "cross-encoder/quora-distilroberta-base",
+    "threshold": 0.8,
+    "hits": 880,
+    "hit_rate": 0.5729166666666666,
+    "outcomes": {
+      "correct_refusal": 571,
+      "correct_reuse": 371,
+      "uncertain_reuse": 1,
+      "missed_reuse": 80,
+      "wrong_reuse": 508,
+      "uncertain_refusal": 5
+    },
+    "reuse_precision": 0.42207053469852107,
+    "reuse_recall": 0.8226164079822617,
+    "f1": 0.5578947368421053
+  },
+  "sbert_crossencoder_080_published": {
+    "model": "cross-encoder/quora-distilroberta-base",
+    "threshold": 0.8,
+    "hits": 880,
+    "hit_rate": 0.5729166666666666,
+    "outcomes": {
+      "correct_refusal": 550,
+      "correct_reuse": 401,
+      "uncertain_reuse": 2,
+      "missed_reuse": 104,
+      "wrong_reuse": 477,
+      "uncertain_refusal": 2
+    },
+    "reuse_precision": 0.45671981776765375,
+    "reuse_recall": 0.7940594059405941,
+    "f1": 0.5798987707881418
+  }
+}
