@@ -10,7 +10,7 @@
   "threshold": 0.7,
   "jev_model": "jev-latest",
   "jev_dependency_pr": 701,
-  "jev_dependency_commit": "089ca44",
+  "jev_dependency_commit": "231546e",
   "jev_prompt_source": "gptcache/similarity_evaluation/jev.py",
   "jev_prompt_source_sha256": "d1497f21a1a96af728d7a8044d4c470033efbbfbe464b081a23eebce46d9e642",
   "scope": "request information, output contract, context, and freshness; answer correctness excluded",
